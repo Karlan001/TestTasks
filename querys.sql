@@ -8,6 +8,5 @@ group by c."name"
 --Найти количество дочерних элементов первого уровня вложенности для категорий номенклатуры.
 select nc.title, count(nc2.id)
 from numenclature_catalog nc 
-left join numenclature_catalog nc2 on nc.id = nc2.perant_categoty 
-where nc.perant_categoty is null
+left join numenclature_catalog nc2 on nc.id = nc2.perant_categoty  
 group by nc.title
