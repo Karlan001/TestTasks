@@ -1,6 +1,7 @@
 .idea/
-Проектирование БД/
 venv/
-pytest_cache/
+.pytest_cache/
 __pycache__/
 test.*
+.gitignore
+/Проектирование БД/
