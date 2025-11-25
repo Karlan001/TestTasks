@@ -1,8 +1,8 @@
 import argparse
 import csv
 from tabulate import tabulate
+from datetime import datetime
 from pathlib import Path
-
 
 parser = argparse.ArgumentParser()
 
@@ -12,13 +12,8 @@ parser.add_argument(
     nargs="+",
     help="Необходимо указать относительный или абсолютный путь до файла",
 )
-parser.add_argument("--report", type=str, help="Необходимо указать имя будущего отчета")
+parser.add_argument("--report", type=str, help="Необходимо указать имя будущего отчета", default='report')
 
-args = parser.parse_args()
-
-
-class CustomExeption(Exception):
-    ...
 
 def get_data_from_file(file_path: str) -> list:
     data = list()
@@ -29,7 +24,7 @@ def get_data_from_file(file_path: str) -> list:
                 data.append(i)
         return data
     except FileNotFoundError:
-        print('Файл по указанному пути не найден')
+        print(f'Файл по указанному пути {file_path} не найден')
 
 
 def prepare_dataset(list_data: list) -> tuple:
@@ -44,6 +39,7 @@ def prepare_dataset(list_data: list) -> tuple:
             a = [v for k, v in data.items() if k == "name" or k == "performance"]
             body.append(a)
         return headers, body
+    print("Передан пустой файл")
 
 
 def print_console(headers: list, body: list) -> None:
@@ -53,8 +49,9 @@ def print_console(headers: list, body: list) -> None:
 def create_report(report_name: str, headers: list, body: list) -> None:
     data = [dict((k, v) for k, v in zip(headers, val)) for val in body]
     sorted_data = sorted(data, key=lambda x: x["performance"], reverse=True)
+    new_report_name = f'{report_name}.csv' if not Path(f'{report_name}.csv').exists() else f'{report_name}-{datetime.now()}.csv'
     print_console(headers, [i.values() for i in sorted_data])
-    with open(f"{report_name}.csv", "w", encoding="utf-8") as write_file:
+    with open(new_report_name, "w", encoding="utf-8") as write_file:
         writer = csv.DictWriter(write_file, fieldnames=headers)
         writer.writeheader()
         writer.writerows(sorted_data)
@@ -64,11 +61,15 @@ def main():
     if args.files:
         for file in args.files:
             data = get_data_from_file(file)
-            headers, body = prepare_dataset(data)
-            create_report(args.report, headers, body)
+            try:
+                headers, body = prepare_dataset(data)
+                create_report(args.report, headers, body)
+            except TypeError:
+                continue
     else:
         print("Вы не передали ни одно пути до файла")
 
-if __name__ == '__main__':
-    main()
 
+if __name__ == '__main__':
+    args = parser.parse_args()
+    main()
